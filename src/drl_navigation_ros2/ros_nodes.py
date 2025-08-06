@@ -47,21 +47,6 @@ class SensorSubscriber(Node):
         # print(self.latest_scan, self.latest_position, self.latest_heading)
         return self.latest_scan, self.latest_position, self.latest_heading
     
-    def is_valid_collision(self, contact):
-        """Filter out collisions with ground and robot parts"""
-        collision1 = contact.collision1_name
-        collision2 = contact.collision2_name
-        
-        # Check if either collision involves an ignored entity
-        for ignored in self.ignored_entities:
-            if ignored in collision1 or ignored in collision2:
-                return False
-                
-        # Check if this is a self-collision (robot part hitting another robot part)
-        if "robot::" in collision1 and "robot::" in collision2:
-            return False
-            
-        return True
     
     def touch_listener_callback(self, msg):
         current_state = False
@@ -76,8 +61,10 @@ class SensorSubscriber(Node):
                 if ('ground' in collision1 or 'ground' in collision2) and ('wheel' in collision1 or 'wheel' in collision2):
                     is_ground_collision = True
                 # 也过滤掉正常的车轮-表面接触
-                if ('plane' in collision1 or 'plane' in collision2) and ('wheel' in collision1 or 'wheel' in collision2):
+                elif ('plane' in collision1 or 'plane' in collision2) and ('wheel' in collision1 or 'wheel' in collision2):
                     is_ground_collision = True
+                else:
+                    self.crash = True
             else:
                 self.crash = True
         # Rising edge detection (collision start)

@@ -93,7 +93,7 @@ def main(args=None):
         )  # get state a state representation from returned data from the environment
         action = model.get_action(state, True)  # get an action from the model
         a_in = [
-            action[0],
+            action[0] / 2,
             # (action[0]+1) * 0.5,
             kp * np.tan(action[1] * max_rad) * action[0] / H,
             # action[1],
@@ -161,7 +161,7 @@ def eval(model, env, scenarios, epoch, max_steps):
                 break
             action = model.get_action(state, False)
             a_in = [
-            action[0],
+            action[0] / 2,
             # (action[0]+1) * 0.5,
             kp * np.tan(action[1] * max_rad) * action[0] / H,
             # action[1],
