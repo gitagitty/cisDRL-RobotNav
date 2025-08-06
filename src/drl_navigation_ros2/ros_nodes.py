@@ -34,7 +34,7 @@ class SensorSubscriber(Node):
         self.collision_count = 0
         self.last_collision_state = False
         self.collision_start_time = None
-        self.ignored_entities = ["ground_plane", "base_link"]
+        self.crash = False
 
     def scan_listener_callback(self, msg):
         self.latest_scan = msg.ranges[:]
@@ -72,11 +72,15 @@ class SensorSubscriber(Node):
                 collision1 = contact.collision1_name.lower()
                 collision2 = contact.collision2_name.lower()
                 # 过滤掉地面平面碰撞
-                if 'ground' in collision1 or 'ground' in collision2:
+                if ('ground' in collision1 or 'ground' in collision2) and ('wheel' in collision1 or 'wheel' in collision2):
                     is_ground_collision = True
                 # 也过滤掉正常的车轮-表面接触
-                if 'plane' in collision1 or 'plane' in collision2:
+                if ('plane' in collision1 or 'plane' in collision2) and ('wheel' in collision1 or 'wheel' in collision2):
                     is_ground_collision = True
+                if ('wheel' in collision1 and 'wheel' in collision2) and not ('ground' in collision1 or 'ground' in collision2):
+                    self.crash = True
+                else:
+                    self.crash = False
         # Rising edge detection (collision start)
             if current_state and not is_ground_collision :
                 self.collision = True
@@ -88,6 +92,10 @@ class SensorSubscriber(Node):
     def has_collision(self):
         """Check if a collision is currently detected"""
         return self.collision
+    
+    def has_crash(self):
+        """Check if a crash (wheel-wheel collision) is currently detected"""
+        return self.crash
     
     def get_collision_count(self):
         return self.collision_count

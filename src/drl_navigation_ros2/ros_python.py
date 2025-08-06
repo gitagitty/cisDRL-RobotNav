@@ -78,14 +78,17 @@ class ROS_env:
         )
         collision = self.sensor_subscriber.has_collision()
         collision_count = self.sensor_subscriber.get_collision_count()
+        crash = self.sensor_subscriber.has_crash()
         if collision:
             print("Collision detected!")
             print(f"Collision count: {collision_count}")
+        if crash:
+            print("Crash detected!")
         goal = self.check_target(distance, collision)
         action = [lin_velocity, ang_velocity]
-        reward = self.get_reward(goal, collision, action, latest_scan)
+        reward = self.get_reward(goal, collision, action, latest_scan, crash)
 
-        return latest_scan, distance, cos, sin, collision, goal, action, reward, collision_count
+        return latest_scan, distance, cos, sin, collision, goal, action, reward, collision_count,crash
 
     def reset(self):
         self.world_reset.reset_world()
@@ -105,7 +108,7 @@ class ROS_env:
 
         self.publish_target.publish(self.target[0], self.target[1])
 
-        latest_scan, distance, cos, sin, _, _, action, reward, collision_count = self.step(
+        latest_scan, distance, cos, sin, _, _, action, reward, collision_count, crash = self.step(
             lin_velocity=action[0], ang_velocity=action[1]
         )
         return latest_scan, distance, cos, sin, False, False, action, reward
@@ -121,7 +124,7 @@ class ROS_env:
 
         self.physics_client.unpause_physics()
         time.sleep(1)
-        latest_scan, distance, cos, sin, _, _, a, reward, _ = self.step(
+        latest_scan, distance, cos, sin, _, _, a, reward, _, crash = self.step(
             lin_velocity=0.0, ang_velocity=0.0
         )
         return latest_scan, distance, cos, sin, False, False, a, reward
@@ -249,11 +252,13 @@ class ROS_env:
         return distance, cos, sin, angle
 
     @staticmethod
-    def get_reward(goal, collision, action, laser_scan):
+    def get_reward(goal, collision, action, laser_scan,crash):
         if goal:
             return 100.0
         elif collision:
             return -100.0
+        elif crash:
+            return -500.0
         else:
             r3 = lambda x: 1.35 - x if x < 1.35 else 0.0
             return action[0] - abs(action[1]) / 2 - r3(min(laser_scan)) / 2
