@@ -118,7 +118,7 @@
     <!-- WHEEL FRICTION SETTINGS FOR 4WD SYSTEM -->
     <!-- Front Left Wheel -->
     <gazebo reference="wheel_left_front">
-        <material>Gazebo/Black</material>
+        <material>Gazebo/White</material>
         <surface>
             <friction>
                 <ode>
@@ -133,7 +133,7 @@
 
     <!-- Front Right Wheel -->
     <gazebo reference="wheel_right_front">
-        <material>Gazebo/Black</material>
+        <material>Gazebo/White</material>
         <surface>
             <friction>
                 <ode>
@@ -148,7 +148,7 @@
 
     <!-- Back Left Wheel - Now also a drive wheel -->
     <gazebo reference="wheel_left_back">
-        <material>Gazebo/Black</material>
+        <material>Gazebo/White</material>
         <surface>
             <friction>
                 <ode>
@@ -163,7 +163,7 @@
 
     <!-- Back Right Wheel - Now also a drive wheel -->
     <gazebo reference="wheel_right_back">
-        <material>Gazebo/Black</material>
+        <material>Gazebo/White</material>
         <surface>
             <friction>
                 <ode>
