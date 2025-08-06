@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="robot" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:arg name="sim_ign" default="true"/>
+
+    <!-- robot_description -->
+    <xacro:include filename="$(find jetacker_description)/urdf/jetacker.xacro"/>
+    <xacro:if value="$(arg sim_ign)">
+        <xacro:include filename="$(find robot_gazebo)/urdf/wheel_base.urdf.xacro"/>
+    </xacro:if>
+    <!-- REMOVED: ros2_control conflicts with differential drive plugin -->
+    <!-- <xacro:include filename="$(find robot_gazebo)/urdf/jetacker.gazebo.xacro"/> -->
+    <!-- lidar -->
+    <xacro:include filename="$(find robot_gazebo)/urdf/lidar.gazebo.xacro"/>
+    <!-- camera -->
+    <xacro:include filename="$(find robot_gazebo)/urdf/camera.gazebo.xacro"/>
+
+    <gazebo>
+        <!-- Planar Move Plugin for 4WD simulation -->
+        <plugin name="gazebo_ros_planar_move" filename="libgazebo_ros_planar_move.so">
+          <update_rate>50</update_rate>
+          <command_topic>cmd_vel</command_topic>
+          <odometry_topic>odom</odometry_topic>
+          <odometry_frame>odom</odometry_frame>
+          <robot_base_frame>base_footprint</robot_base_frame>
+          <publish_odom>true</publish_odom>
+          <publish_odom_tf>true</publish_odom_tf>
+          <covariance_x>0.0001</covariance_x>
+          <covariance_y>0.0001</covariance_y>
+          <covariance_yaw>0.01</covariance_yaw>
+        </plugin>
+
+        <!-- Joint state publisher for all wheels -->
+        <plugin name="gazebo_ros_joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
+            <joint_name>wheel_left_front_joint</joint_name>
+            <joint_name>wheel_left_back_joint</joint_name>
+            <joint_name>wheel_right_front_joint</joint_name>
+            <joint_name>wheel_right_back_joint</joint_name>
+            <update_rate>50</update_rate>
+        </plugin>
+    </gazebo>   
+
+    <!-- Contact sensors for collision detection on wheels -->
+    <!-- Front Left Wheel Contact Sensor -->
+    <gazebo reference="wheel_left_front">
+        <sensor name="contact_sensor_fl" type="contact">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <contact>
+                <collision>wheel_left_front_collision</collision>
+            </contact>
+            <plugin name="gazebo_ros_bumper_fl" filename="libgazebo_ros_bumper.so">
+                <ros>
+                    <namespace>/robot</namespace>
+                    <remapping>bumper_states:=cfg/touched</remapping>
+                </ros>
+                <frame_name>wheel_left_front</frame_name>
+            </plugin>
+        </sensor>
+    </gazebo>
+    
+    <!-- Front Right Wheel Contact Sensor -->
+    <gazebo reference="wheel_right_front">
+        <sensor name="contact_sensor_fr" type="contact">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <contact>
+                <collision>wheel_right_front_collision</collision>
+            </contact>
+            <plugin name="gazebo_ros_bumper_fr" filename="libgazebo_ros_bumper.so">
+                <ros>
+                    <namespace>/robot</namespace>
+                    <remapping>bumper_states:=cfg/touched</remapping>
+                </ros>
+                <frame_name>wheel_right_front</frame_name>
+            </plugin>
+        </sensor>
+    </gazebo>
+    
+    <!-- Back Left Wheel Contact Sensor -->
+    <gazebo reference="wheel_left_back">
+        <sensor name="contact_sensor_bl" type="contact">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <contact>
+                <collision>wheel_left_back_collision</collision>
+            </contact>
+            <plugin name="gazebo_ros_bumper_bl" filename="libgazebo_ros_bumper.so">
+                <ros>
+                    <namespace>/robot</namespace>
+                    <remapping>bumper_states:=cfg/touched</remapping>
+                </ros>
+                <frame_name>wheel_left_back</frame_name>
+            </plugin>
+        </sensor>
+    </gazebo>
+    
+    <!-- Back Right Wheel Contact Sensor -->
+    <gazebo reference="wheel_right_back">
+        <sensor name="contact_sensor_br" type="contact">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <contact>
+                <collision>wheel_right_back_collision</collision>
+            </contact>
+            <plugin name="gazebo_ros_bumper_br" filename="libgazebo_ros_bumper.so">
+                <ros>
+                    <namespace>/robot</namespace>
+                    <remapping>bumper_states:=cfg/touched</remapping>
+                </ros>
+                <frame_name>wheel_right_back</frame_name>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!-- Note: Wheel-ground collisions will be filtered in software by checking collision names -->
+
+    <!-- WHEEL FRICTION SETTINGS FOR 4WD SYSTEM -->
+    <!-- Front Left Wheel -->
+    <gazebo reference="wheel_left_front">
+        <material>Gazebo/Black</material>
+        <surface>
+            <friction>
+                <ode>
+                    <mu>0.6</mu>      <!-- Good traction for driving -->
+                    <mu2>0.3</mu2>    <!-- Lower lateral friction for easier turning -->
+                    <slip1>0.1</slip1>
+                    <slip2>0.1</slip2>
+                </ode>
+            </friction>
+        </surface>  
+    </gazebo>
+
+    <!-- Front Right Wheel -->
+    <gazebo reference="wheel_right_front">
+        <material>Gazebo/Black</material>
+        <surface>
+            <friction>
+                <ode>
+                    <mu>0.6</mu>      <!-- Good traction for driving -->
+                    <mu2>0.3</mu2>    <!-- Lower lateral friction for easier turning -->
+                    <slip1>0.1</slip1>
+                    <slip2>0.1</slip2>
+                </ode>
+            </friction>
+        </surface>  
+    </gazebo>
+
+    <!-- Back Left Wheel - Now also a drive wheel -->
+    <gazebo reference="wheel_left_back">
+        <material>Gazebo/Black</material>
+        <surface>
+            <friction>
+                <ode>
+                    <mu>0.6</mu>      <!-- Same traction as front wheels -->
+                    <mu2>0.3</mu2>    <!-- Lower lateral friction for easier turning -->
+                    <slip1>0.1</slip1>
+                    <slip2>0.1</slip2>
+                </ode>
+            </friction>
+        </surface>  
+    </gazebo>
+
+    <!-- Back Right Wheel - Now also a drive wheel -->
+    <gazebo reference="wheel_right_back">
+        <material>Gazebo/Black</material>
+        <surface>
+            <friction>
+                <ode>
+                    <mu>0.6</mu>      <!-- Same traction as front wheels -->
+                    <mu2>0.3</mu2>    <!-- Lower lateral friction for easier turning -->
+                    <slip1>0.1</slip1>
+                    <slip2>0.1</slip2>
+                </ode>
+            </friction>
+        </surface>  
+    </gazebo>
+
+</robot>
