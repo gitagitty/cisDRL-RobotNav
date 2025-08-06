@@ -68,6 +68,7 @@ class SensorSubscriber(Node):
         for contact in msg.states:
             is_ground_collision = False
             if hasattr(contact, 'collision1_name') and hasattr(contact, 'collision2_name'):
+                self.crash = False
                 current_state = True
                 collision1 = contact.collision1_name.lower()
                 collision2 = contact.collision2_name.lower()
@@ -77,10 +78,8 @@ class SensorSubscriber(Node):
                 # 也过滤掉正常的车轮-表面接触
                 if ('plane' in collision1 or 'plane' in collision2) and ('wheel' in collision1 or 'wheel' in collision2):
                     is_ground_collision = True
-                if ('wheel' in collision1 and 'wheel' in collision2) and not ('ground' in collision1 or 'ground' in collision2):
-                    self.crash = True
-                else:
-                    self.crash = False
+            else:
+                self.crash = True
         # Rising edge detection (collision start)
             if current_state and not is_ground_collision :
                 self.collision = True
