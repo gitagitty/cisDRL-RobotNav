@@ -77,13 +77,15 @@ class ROS_env:
             latest_position, latest_orientation
         )
         collision = self.sensor_subscriber.has_collision()
+        collision_count = self.sensor_subscriber.get_collision_count()
         if collision:
             print("Collision detected!")
+            print(f"Collision count: {collision_count}")
         goal = self.check_target(distance, collision)
         action = [lin_velocity, ang_velocity]
         reward = self.get_reward(goal, collision, action, latest_scan)
 
-        return latest_scan, distance, cos, sin, collision, goal, action, reward
+        return latest_scan, distance, cos, sin, collision, goal, action, reward, collision_count
 
     def reset(self):
         self.world_reset.reset_world()
@@ -103,7 +105,7 @@ class ROS_env:
 
         self.publish_target.publish(self.target[0], self.target[1])
 
-        latest_scan, distance, cos, sin, _, _, action, reward = self.step(
+        latest_scan, distance, cos, sin, _, _, action, reward, collision_count = self.step(
             lin_velocity=action[0], ang_velocity=action[1]
         )
         return latest_scan, distance, cos, sin, False, False, action, reward
@@ -119,7 +121,7 @@ class ROS_env:
 
         self.physics_client.unpause_physics()
         time.sleep(1)
-        latest_scan, distance, cos, sin, _, _, a, reward = self.step(
+        latest_scan, distance, cos, sin, _, _, a, reward, _ = self.step(
             lin_velocity=0.0, ang_velocity=0.0
         )
         return latest_scan, distance, cos, sin, False, False, a, reward
@@ -251,7 +253,7 @@ class ROS_env:
         if goal:
             return 100.0
         elif collision:
-            return -10.0
+            return -100.0
         else:
             r3 = lambda x: 1.35 - x if x < 1.35 else 0.0
             return action[0] - abs(action[1]) / 2 - r3(min(laser_scan)) / 2

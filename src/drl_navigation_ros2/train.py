@@ -30,7 +30,7 @@ def main(args=None):
     nr_eval_episodes = 10  # how many episodes to use to run evaluation
     max_epochs = 100  # max number of epochs
     epoch = 0  # starting epoch number
-    episodes_per_epoch = 70  # how many episodes to run in single epoch
+    episodes_per_epoch = 5  # how many episodes to run in single epoch
     episode = 0  # starting episode number
     train_every_n = 2  # train and update network parameters every n episodes
     training_iterations = 500  # how many batches to use for single training cycle
@@ -82,14 +82,14 @@ def main(args=None):
     )  # if not experiences are loaded, instantiate an empty buffer
 
     ros.reset()  # reset the ROS environment to the initial state
-    latest_scan, distance, cos, sin, collision, goal, a, reward = ros.step(
+    latest_scan, distance, cos, sin, collision, goal, a, reward, collision_count = ros.step(
         lin_velocity=0.0, ang_velocity=0.0
     )  # get the initial step state
     
 
     while epoch < max_epochs:  # train until max_epochs is reached
         state, terminal = model.prepare_state(
-            latest_scan, distance, cos, sin, goal, a
+            latest_scan, distance, cos, sin, goal, a, collision_count
         )  # get state a state representation from returned data from the environment
         action = model.get_action(state, True)  # get an action from the model
         a_in = [
@@ -99,11 +99,11 @@ def main(args=None):
             # action[1],
         ]  # clip linear velocity to [-0.5, 0.5] m/s range
 
-        latest_scan, distance, cos, sin, collision, goal, a, reward = ros.step(
+        latest_scan, distance, cos, sin, collision, goal, a, reward, collision_count = ros.step(
             lin_velocity=a_in[0], ang_velocity=a_in[1]
         )  # get data from the environment
         next_state, terminal = model.prepare_state(
-            latest_scan, distance, cos, sin, goal, a
+            latest_scan, distance, cos, sin, goal, a, collision_count
         )  # get a next state representation
         replay_buffer.add(
             state, action, reward, terminal, next_state
@@ -146,6 +146,7 @@ def eval(model, env, scenarios, epoch, max_steps):
     avg_reward = 0.0
     col = 0
     gl = 0
+    collision_count = env.sensor_subscriber.get_collision_count()
     for scenario in scenarios:
         count = 0
         latest_scan, distance, cos, sin, collision, goal, a, reward = env.eval(
@@ -153,7 +154,7 @@ def eval(model, env, scenarios, epoch, max_steps):
         )
         while count < max_steps:
             state, terminal = model.prepare_state(
-                latest_scan, distance, cos, sin, goal, a
+                latest_scan, distance, cos, sin, goal, a, collision_count
             )
             if terminal:
                 break
@@ -164,7 +165,7 @@ def eval(model, env, scenarios, epoch, max_steps):
             kp * np.tan(action[1] * max_rad) * action[0] / H,
             # action[1],
         ]    # clip linear velocity to [-0.5, 0.5] m/s range
-            latest_scan, distance, cos, sin, collision, goal, a, reward = env.step(
+            latest_scan, distance, cos, sin, collision, goal, a, reward, collision_count = env.step(
                 lin_velocity=a_in[0], ang_velocity=a_in[1]
             )
             avg_reward += reward
