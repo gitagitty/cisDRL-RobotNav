@@ -255,12 +255,12 @@ class ROS_env:
 
     @staticmethod
     def get_reward(goal, collision, action, laser_scan, crash):
-        if goal:
-            return 100.0  # Large reward for reaching goal
+        if crash:
+            return -500.0  # Severe penalty for crashes
         elif collision:
             return -100.0  # Penalize collisions
-        elif crash:
-            return -500.0  # Severe penalty for crashes
+        elif goal:
+            return 100.0  # Large reward for reaching goal
         else:
             # Handle None or empty laser scans
             if laser_scan is None or len(laser_scan) == 0:
