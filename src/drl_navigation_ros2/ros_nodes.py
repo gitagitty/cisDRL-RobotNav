@@ -65,7 +65,7 @@ class SensorSubscriber(Node):
         # Rising edge detection (collision start)
             if current_state and not is_ground_collision :
                 self.collision = True
-                self.collision_count += 1
+                # self.collision_count += 1
             else:
                 self.collision = False
         
