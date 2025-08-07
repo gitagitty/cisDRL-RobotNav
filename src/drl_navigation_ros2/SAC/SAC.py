@@ -289,29 +289,32 @@ class SAC(object):
         min_right = np.min(right_scan)
         min_rear = np.min(rear_scan)
         
-        # 4. Detect potential traps (dead ends)
-        trap_threshold = 0.7
-        front_trapped = min_front < trap_threshold
-        side_trapped = min(min_left, min_right) < trap_threshold * 1.2
-        rear_trapped = min_rear < trap_threshold * 1.5
-        is_trapped = int(front_trapped and side_trapped and not rear_trapped)
+        # 4. Calculate maximum distances for critical areas
+        max_front = np.max(front_scan)
+        max_left = np.max(left_scan)
+        max_right = np.max(right_scan)
+        max_rear = np.max(rear_scan)    
+        
         
         # 5. Build state vector
         state = [
             min_front, 
+            max_front, 
             min_left, 
+            max_left, 
             min_right, 
+            max_right, 
             min_rear,
+            max_rear,
             distance, 
             cos, 
             sin,
-            is_trapped,
             action[0],  # Maintain action history for motion context
             action[1]
         ]
         
         # 6. Terminal conditions (goal, collisions, or crash)
-        terminal = 1 if goal or (collision_count >= 5) or crash else 0
+        terminal = 1 if goal or (collision_count >= 10) or crash else 0
         
         # 7. Verify state dimension matches expected size
         assert len(state) == self.state_dim
