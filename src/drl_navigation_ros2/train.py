@@ -12,14 +12,14 @@ from pretrain_utils import Pretraining
 
 max_rad = 0.645  # maximum angle in radians for the angular velocity output
 H = 0.21  # distance from the robot front wheels to the back wheels
-kp = 1  # proportional gain for the controller
+kp = 3  # proportional gain for the controller
 
 
 def main(args=None):
     """Main training function"""
     action_dim = 2  # number of actions produced by the model
     max_action = 1  # maximum absolute value of output actions
-    state_dim = 25  # number of input values in the neural network (vector length of state input)
+    state_dim = 10  # number of input values in the neural network (vector length of state input)
     device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )  # using cuda if it is available, cpu otherwise
@@ -30,7 +30,7 @@ def main(args=None):
     nr_eval_episodes = 10  # how many episodes to use to run evaluation
     max_epochs = 100  # max number of epochs
     epoch = 0  # starting epoch number
-    episodes_per_epoch = 40  # how many episodes to run in single epoch
+    episodes_per_epoch = 70  # how many episodes to run in single epoch
     episode = 0  # starting episode number
     train_every_n = 2  # train and update network parameters every n episodes
     training_iterations = 500  # how many batches to use for single training cycle

@@ -252,28 +252,95 @@ class SAC(object):
         if step % self.critic_target_update_frequency == 0:
             utils.soft_update_params(self.critic, self.critic_target, self.critic_tau)
 
+
     def prepare_state(self, latest_scan, distance, cos, sin, goal, action, collision_count, crash):
-        # update the returned data from ROS into a form used for learning in the current model
         latest_scan = np.array(latest_scan)
-
-        inf_mask = np.isinf(latest_scan)
-        latest_scan[inf_mask] = 7.0
-
-        max_bins = self.state_dim - 5
-        bin_size = int(np.ceil(len(latest_scan) / max_bins))
-
-        # Initialize the list to store the minimum values of each bin
-        min_values = []
-
-        # Loop through the data and create bins
-        for i in range(0, len(latest_scan), bin_size):
-            # Get the current bin
-            bin = latest_scan[i : i + min(bin_size, len(latest_scan) - i)]
-            # Find the minimum value in the current bin and append it to the min_values list
-            min_values.append(min(bin))
-        state = min_values + [distance, cos, sin] + [action[0], action[1]]
-
+        
+        # 1. Preprocess laser scan
+        inf_mask = np.isinf(latest_scan) | (latest_scan > 4.0)
+        latest_scan[inf_mask] = 4.0
+        
+        # 2. Calculate critical directions (front, sides, rear)
+        n = len(latest_scan)
+        # Front sector (0° ± 45°)
+        front_start = 0
+        front_end = n // 8
+        front_scan = np.concatenate((latest_scan[front_start:front_end], 
+                                    latest_scan[-front_end:]))
+        
+        # Left sector (45°-135°)
+        left_start = n // 8
+        left_end = 3 * n // 8
+        left_scan = latest_scan[left_start:left_end]
+        
+        # Right sector (225°-315°)
+        right_start = 5 * n // 8
+        right_end = 7 * n // 8
+        right_scan = latest_scan[right_start:right_end]
+        
+        # Rear sector (135°-225°)
+        rear_start = 3 * n // 8
+        rear_end = 5 * n // 8
+        rear_scan = latest_scan[rear_start:rear_end]
+        
+        # 3. Calculate min distances for critical areas
+        min_front = np.min(front_scan)
+        min_left = np.min(left_scan)
+        min_right = np.min(right_scan)
+        min_rear = np.min(rear_scan)
+        
+        # 4. Detect potential traps (dead ends)
+        trap_threshold = 0.7
+        front_trapped = min_front < trap_threshold
+        side_trapped = min(min_left, min_right) < trap_threshold * 1.2
+        rear_trapped = min_rear < trap_threshold * 1.5
+        is_trapped = int(front_trapped and side_trapped and not rear_trapped)
+        
+        # 5. Build state vector
+        state = [
+            min_front, 
+            min_left, 
+            min_right, 
+            min_rear,
+            distance, 
+            cos, 
+            sin,
+            is_trapped,
+            action[0],  # Maintain action history for motion context
+            action[1]
+        ]
+        
+        # 6. Terminal conditions (goal, collisions, or crash)
+        terminal = 1 if goal or (collision_count >= 5) or crash else 0
+        
+        # 7. Verify state dimension matches expected size
         assert len(state) == self.state_dim
-        terminal = 1 if (goal or collision_count >= 5 or crash) else 0
-
+        
         return state, terminal
+
+
+    # def prepare_state(self, latest_scan, distance, cos, sin, goal, action, collision_count, crash):
+    #     # update the returned data from ROS into a form used for learning in the current model
+    #     latest_scan = np.array(latest_scan)
+
+    #     inf_mask = np.isinf(latest_scan) | (latest_scan > 4.0)
+    #     latest_scan[inf_mask] = 4.1
+
+    #     max_bins = self.state_dim - 5
+    #     bin_size = int(np.ceil(len(latest_scan) / max_bins))
+
+    #     # Initialize the list to store the minimum values of each bin
+    #     min_values = []
+
+    #     # Loop through the data and create bins
+    #     for i in range(0, len(latest_scan), bin_size):
+    #         # Get the current bin
+    #         bin = latest_scan[i : i + min(bin_size, len(latest_scan) - i)]
+    #         # Find the minimum value in the current bin and append it to the min_values list
+    #         min_values.append(min(bin))
+    #     state = min_values + [distance, cos, sin] + [action[0], action[1]]
+
+    #     assert len(state) == self.state_dim
+    #     terminal = 1 if (goal or collision_count >= 10 or crash) else 0
+
+    #     return state, terminal

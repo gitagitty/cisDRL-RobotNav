@@ -80,11 +80,13 @@ class ROS_env:
         collision_count = self.sensor_subscriber.get_collision_count()
         crash = self.sensor_subscriber.has_crash()
         if collision:
-            print("Collision detected!")
+            # print("Collision detected!")
             print(f"Collision count: {collision_count}")
         if crash:
             print("Crash detected!")
         goal = self.check_target(distance, collision)
+        if goal:
+            print("Target reached!")
         action = [lin_velocity, ang_velocity]
         reward = self.get_reward(goal, collision, action, latest_scan, crash)
 
@@ -252,16 +254,36 @@ class ROS_env:
         return distance, cos, sin, angle
 
     @staticmethod
-    def get_reward(goal, collision, action, laser_scan,crash):
+    def get_reward(goal, collision, action, laser_scan, crash):
         if goal:
-            return 100.0
+            return 100.0  # Large reward for reaching goal
         elif collision:
-            return -100.0
+            return -100.0  # Penalize collisions
         elif crash:
-            return -500.0
+            return -500.0  # Severe penalty for crashes
         else:
-            r3 = lambda x: 1.35 - x if x < 1.35 else 0.0
-            return action[0] - abs(action[1]) / 2 - r3(min(laser_scan)) / 2
+            min_scan = min(laser_scan)
+            # r3 = 1.35 - min_scan if min_scan < 1.35 else 0.0
+            
+            # Base reward components
+            base_reward = action[0] - abs(action[1]) / 2 
+            
+            # Dead end detection and escape encouragement
+            dead_end_threshold = 0.5  # Distance to consider as trapped
+            escape_bonus = 0
+            
+            if min_scan < dead_end_threshold:                
+                # Encourage turning while in dead ends
+                escape_bonus += abs(action[1]) * 1.5  # Amplify turning
+                
+                # # Progress bonus for increasing clearance
+                # if hasattr(get_reward, 'prev_min_scan'):
+                #     if min_scan > get_reward.prev_min_scan:
+                #         escape_bonus += 1.0  # Reward moving away from obstacles
+                # get_reward.prev_min_scan = min_scan  # Store current scan
+            
+            return base_reward + escape_bonus
+
 
     @staticmethod
     def cossin(vec1, vec2):
