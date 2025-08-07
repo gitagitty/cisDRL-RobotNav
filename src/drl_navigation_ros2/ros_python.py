@@ -77,11 +77,12 @@ class ROS_env:
             latest_position, latest_orientation
         )
         collision = self.sensor_subscriber.has_collision()
-        collision_count = self.sensor_subscriber.get_collision_count()
+        # collision_count = self.sensor_subscriber.get_collision_count()
         crash = self.sensor_subscriber.has_crash()
         if collision:
-            # print("Collision detected!")
-            print(f"Collision count: {collision_count}")
+            print("Collision detected!")
+            self.sensor_subscriber.collision_count += 1
+            print(f"Collision count: {self.sensor_subscriber.collision_count}")
         if crash:
             print("Crash detected!")
         goal = self.check_target(distance, collision)
@@ -89,6 +90,7 @@ class ROS_env:
             print("Target reached!")
         action = [lin_velocity, ang_velocity]
         reward = self.get_reward(goal, collision, action, latest_scan, crash)
+        collision_count = self.sensor_subscriber.collision_count
 
         return latest_scan, distance, cos, sin, collision, goal, action, reward, collision_count,crash
 
