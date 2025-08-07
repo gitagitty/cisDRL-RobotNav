@@ -16,7 +16,7 @@ def launch_setup(context):
     world_name = LaunchConfiguration('world_name', default='empty').perform(context)
     nav = LaunchConfiguration('nav', default='false').perform(context)
     moveit_unite = LaunchConfiguration('moveit_unite', default='false').perform(context)
-
+    
 
     moveit_unite_arg = DeclareLaunchArgument('moveit_unite', default_value=moveit_unite)
     nav_arg = DeclareLaunchArgument('nav',default_value=nav)
