@@ -508,10 +508,10 @@ def amend_sdf(sdf_root):
 
 
 def main():
-    car_length = 0.32
-    car_width  = 0.28
-    wheel_base = 0.213
-    total_maps = 10
+    car_length = 0.52
+    car_width  = 0.48
+    wheel_base = 0.513
+    total_maps = 30
 
     # 1. 生成子区域
     regions = generate_subregions(car_length, car_width, total_maps=total_maps)

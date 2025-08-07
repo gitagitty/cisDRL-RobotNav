@@ -262,27 +262,21 @@ class ROS_env:
         elif crash:
             return -500.0  # Severe penalty for crashes
         else:
+            # Handle None or empty laser scans
+            if laser_scan is None or len(laser_scan) == 0:
+                return 0.0  # Neutral reward when no scan data
+            
             min_scan = min(laser_scan)
-            # r3 = 1.35 - min_scan if min_scan < 1.35 else 0.0
-            
-            # Base reward components
             base_reward = action[0] - abs(action[1]) / 2 
-            
-            # Dead end detection and escape encouragement
-            dead_end_threshold = 0.5  # Distance to consider as trapped
             escape_bonus = 0
             
+            # Dead end handling only if we have valid scan
+            dead_end_threshold = 0.5
             if min_scan < dead_end_threshold:                
-                # Encourage turning while in dead ends
-                escape_bonus += abs(action[1]) * 1.5  # Amplify turning
-                
-                # # Progress bonus for increasing clearance
-                # if hasattr(get_reward, 'prev_min_scan'):
-                #     if min_scan > get_reward.prev_min_scan:
-                #         escape_bonus += 1.0  # Reward moving away from obstacles
-                # get_reward.prev_min_scan = min_scan  # Store current scan
+                escape_bonus = abs(action[1]) * 1.5  # Amplify turning
             
             return base_reward + escape_bonus
+
 
 
     @staticmethod

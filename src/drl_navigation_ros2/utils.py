@@ -36,22 +36,33 @@ def set_random_position(name, element_positions):
     return eval_element
 
 
+import json
+from collections import namedtuple
+
+ScenarioElement = namedtuple('ScenarioElement', ['name', 'x', 'y', 'angle'])
+
 def record_eval_positions(n_eval_scenarios=10):
+    # Load configurations from your world definition
+    with open('src/robot_gazebo/configs/configs.json', 'r') as f:
+        all_configs = json.load(f)
+    
     scenarios = []
-    for _ in range(n_eval_scenarios):
-        eval_scenario = []
-        element_positions = [[-2.93, 3.17], [2.86, -3.0], [-2.77, -0.96], [2.83, 2.93]]
-        for i in range(4, 8):
-            name = "obstacle" + str(i + 1)
-            eval_element = set_random_position(name, element_positions)
-            eval_scenario.append(eval_element)
-
-        eval_element = set_random_position("robot", element_positions)
-        eval_scenario.append(eval_element)
-
-        eval_element = set_random_position("target", element_positions)
-        eval_scenario.append(eval_element)
-
-        scenarios.append(eval_scenario)
-
+    
+    # Select evaluation configurations (first n or random selection)
+    eval_configs = all_configs[:n_eval_scenarios]
+    
+    for config in eval_configs:
+        scenario = []
+        
+        # Add robot position
+        x, y, yaw = config['start_pose']
+        scenario.append(ScenarioElement("robot", x, y, yaw))
+        
+        # Add target position
+        tx, ty = config['target_position']
+        scenario.append(ScenarioElement("target", tx, ty, 0.0))
+        
+        scenarios.append(scenario)
+    
     return scenarios
+
