@@ -27,7 +27,7 @@ def main(args=None):
         print("Using GPU for training")
     else:
         print("Using CPU for training")
-    nr_eval_episodes = 10  # how many episodes to use to run evaluation
+    nr_eval_episodes = 20  # how many episodes to use to run evaluation
     max_epochs = 100  # max number of epochs
     epoch = 0  # starting epoch number
     episodes_per_epoch = 70  # how many episodes to run in single epoch

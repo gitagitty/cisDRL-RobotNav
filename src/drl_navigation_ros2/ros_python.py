@@ -257,27 +257,30 @@ class ROS_env:
 
     @staticmethod
     def get_reward(goal, collision, action, laser_scan, crash):
+        crash_reward = 0.0
+        col_reward = 0.0
+        goal_reward = 0.0
         if crash:
-            return -500.0  # Severe penalty for crashes
-        elif collision:
-            return -100.0  # Penalize collisions
-        elif goal:
-            return 100.0  # Large reward for reaching goal
-        else:
-            # Handle None or empty laser scans
-            if laser_scan is None or len(laser_scan) == 0:
-                return 0.0  # Neutral reward when no scan data
+            crash_reward = -500.0  # Severe penalty for crashes
+        if collision:
+            col_reward = -100.0  # Penalize collisions
+        if goal:
+            goal_reward = 100.0  # Large reward for reaching goal
+        
+        # Handle None or empty laser scans
+        if laser_scan is None or len(laser_scan) == 0:
+            return 0.0  # Neutral reward when no scan data
             
-            min_scan = min(laser_scan)
-            base_reward = action[0] - abs(action[1]) / 2 
-            escape_bonus = 0
+        min_scan = min(laser_scan)
+        base_reward = action[0] - abs(action[1]) / 2 
+        escape_bonus = 0
             
-            # Dead end handling only if we have valid scan
-            dead_end_threshold = 0.5
-            if min_scan < dead_end_threshold:                
-                escape_bonus = abs(action[1]) * 1.5  # Amplify turning
+        # Dead end handling only if we have valid scan
+        dead_end_threshold = 0.5
+        if min_scan < dead_end_threshold:                
+            escape_bonus = abs(action[1]) * 1.5  # Amplify turning
             
-            return base_reward + escape_bonus
+        return base_reward + escape_bonus + goal_reward + col_reward + crash_reward
 
 
 

@@ -544,7 +544,7 @@ def main():
             traj_params = dict(n_steps=60, dt=0.1, beta=1.2)
             buf = 0.000000001
             gap = 0.03
-        elif idx < 2*third:
+        elif idx < 2.5 *third:
             # 第二段：中等难度
             traj_params = dict(n_steps=50, dt=0.1, beta=0.8)
             buf = 0.000000001
@@ -641,7 +641,7 @@ def main():
             cylinders=cylinders_from_wallline(
                 sc.wall_line,
                 car_width,
-                cylinder_radius=0.02,
+                cylinder_radius=0.05,
                 spacing=0.15  # 小于车宽 0.28
             ),
             start_pose=sc.start_pose,
