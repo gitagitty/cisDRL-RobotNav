@@ -23,7 +23,7 @@ class ROS_env:
         init_target_distance=2.0,
         target_dist_increase=0.001,
         max_target_dist=8.0,
-        target_reached_delta=0.5,
+        target_reached_delta=0.2,
         collision_delta=0.1,
         args=None,
     ):
@@ -89,7 +89,7 @@ class ROS_env:
         if goal:
             print("Target reached!")
         action = [lin_velocity, ang_velocity]
-        reward = self.get_reward(goal, collision, action, latest_scan, crash)
+        reward = self.get_reward(goal, collision, action, latest_scan, crash, cos)
         collision_count = self.sensor_subscriber.collision_count
 
         return latest_scan, distance, cos, sin, collision, goal, action, reward, collision_count,crash
@@ -256,7 +256,7 @@ class ROS_env:
         return distance, cos, sin, angle
 
     @staticmethod
-    def get_reward(goal, collision, action, laser_scan, crash):
+    def get_reward(goal, collision, action, laser_scan, crash, cos):
         crash_reward = 0.0
         col_reward = 0.0
         goal_reward = 0.0
@@ -271,16 +271,10 @@ class ROS_env:
         if laser_scan is None or len(laser_scan) == 0:
             return 0.0  # Neutral reward when no scan data
             
-        min_scan = min(laser_scan)
-        base_reward = action[0] - abs(action[1]) / 2 
-        escape_bonus = 0
+        base_reward = 10*(action[0] + action[1])
+        target_reward = action[0] * cos
             
-        # Dead end handling only if we have valid scan
-        dead_end_threshold = 0.5
-        if min_scan < dead_end_threshold:                
-            escape_bonus = abs(action[1]) * 1.5  # Amplify turning
-            
-        return base_reward + escape_bonus + goal_reward + col_reward + crash_reward
+        return base_reward + goal_reward + col_reward + crash_reward + target_reward
 
 
 
