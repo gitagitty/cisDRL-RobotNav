@@ -19,7 +19,7 @@ def main(args=None):
     """Main training function"""
     action_dim = 2  # number of actions produced by the model
     max_action = 1  # maximum absolute value of output actions
-    state_dim = 13  # number of input values in the neural network (vector length of state input)
+    state_dim = 23  # number of input values in the neural network (vector length of state input)
     device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )  # using cuda if it is available, cpu otherwise
@@ -27,15 +27,15 @@ def main(args=None):
         print("Using GPU for training")
     else:
         print("Using CPU for training")
-    nr_eval_episodes = 20  # how many episodes to use to run evaluation
+    nr_eval_episodes = 40  # how many episodes to use to run evaluation
     max_epochs = 100  # max number of epochs
     epoch = 0  # starting epoch number
-    episodes_per_epoch = 70  # how many episodes to run in single epoch
+    episodes_per_epoch = 5  # how many episodes to run in single epoch
     episode = 0  # starting episode number
     train_every_n = 2  # train and update network parameters every n episodes
     training_iterations = 500  # how many batches to use for single training cycle
     batch_size = 40  # batch size for each training iteration
-    max_steps = 1000  # maximum number of steps in single episode
+    max_steps = 500  # maximum number of steps in single episode
     steps = 0  # starting step number
     load_saved_buffer = True  # whether to load experiences from assets/data.yml
     pretrain = True  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
@@ -43,6 +43,9 @@ def main(args=None):
         50  # number of training iterations to run during pre-training
     )
     save_every = 100  # save the model every n training cycles
+    episode_id = 1
+    import yaml  
+    yaml_data = {}
     
 
     model = SAC(
@@ -59,9 +62,9 @@ def main(args=None):
         n_eval_scenarios=nr_eval_episodes
     )  # save scenarios that will be used for evaluation
 
-    """ if load_saved_buffer:
+    if load_saved_buffer:
         pretraining = Pretraining(
-            file_names=["src/drl_navigation_ros2/assets/data.yml"],
+            file_names=["src/drl_navigation_ros2/assets/set.yml"],
             model=model,
             replay_buffer=ReplayBuffer(buffer_size=5e3, random_seed=42),
             reward_function=ros.get_reward,
@@ -76,10 +79,10 @@ def main(args=None):
                 iterations=training_iterations,
                 batch_size=batch_size,
             )  # run pre-training
-    else: """
-    replay_buffer = ReplayBuffer(
-        buffer_size=5e3, random_seed=42        
-    )  # if not experiences are loaded, instantiate an empty buffer
+    else:
+        replay_buffer = ReplayBuffer(
+            buffer_size=5e3, random_seed=42        
+        )  # if not experiences are loaded, instantiate an empty buffer
 
     ros.reset()  # reset the ROS environment to the initial state
     latest_scan, distance, cos, sin, collision, goal, a, reward, collision_count, crash = ros.step(
@@ -108,6 +111,23 @@ def main(args=None):
         replay_buffer.add(
             state, action, reward, terminal, next_state
         )  # add experience to the replay buffer
+      
+ 
+        # yaml_data[episode_id] = {
+        #     "action": action.tolist(),
+        #     "collision": collision,
+        #     "cos": float(cos),
+        #     "sin": float(sin),
+        #     "distance": float(distance),
+        #     "goal": goal,
+        #     "latest_scan": latest_scan.tolist(),
+        # }
+        # episode_id += 1
+        # # Optional: Save every 1000 episodes to prevent memory overload
+        # if episode_id % 1000 == 0:
+        #     with open("src/drl_navigation_ros2/assets/set.yml", "w") as f:
+        #         yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
+        #     print(f"Saved up to episode {episode_id - 1}")
 
         if (
             terminal or steps == max_steps
@@ -126,8 +146,9 @@ def main(args=None):
         else:
             steps += 1
 
+
         if (
-            episode + 1
+            episode
         ) % episodes_per_epoch == 0:  # if epoch is concluded, run evaluation
             episode = 0
             epoch += 1

@@ -52,3 +52,10 @@ class ReplayBuffer(object):
     def clear(self):
         self.buffer.clear()
         self.count = 0
+        
+    def save(self, filename):
+        """Save the replay buffer to a file."""
+        with open(filename, 'w') as f:
+            import yaml
+            yaml.dump(self.buffer, f)
+            

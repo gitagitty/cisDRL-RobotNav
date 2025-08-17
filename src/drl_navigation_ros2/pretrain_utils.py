@@ -33,7 +33,7 @@ class Pretraining:
                     crash = sample["crash"]
 
                     state, terminal = self.model.prepare_state(
-                        latest_scan, distance, cos, sin, collision, goal, action, crash
+                        latest_scan, distance, cos, sin, collision, goal, action, crash, cos
                     )
 
                     if terminal:
@@ -59,7 +59,7 @@ class Pretraining:
                         next_crash
                     )
                     reward = self.reward_function(
-                        next_goal, next_collision, action, next_latest_scan, next_crash
+                        next_goal, next_collision, action, next_latest_scan, next_crash, next_cos
                     )
                     self.replay_buffer.add(
                         state, action, reward, next_terminal, next_state

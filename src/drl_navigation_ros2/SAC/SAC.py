@@ -262,50 +262,80 @@ class SAC(object):
         
         # 2. Calculate critical directions (front, sides, rear)
         n = len(latest_scan)
-        # Front sector (0° ± 45°)
-        front_start = 0
-        front_end = n // 8
-        front_scan = np.concatenate((latest_scan[front_start:front_end], 
-                                    latest_scan[-front_end:]))
+        # sector1 (0° ± 20°)
+        start1 = 0
+        end1 = n // 18
+        scan1 = np.concatenate((latest_scan[start1:end1], 
+                                    latest_scan[-end1:]))
         
-        # Left sector (45°-135°)
-        left_start = n // 8
-        left_end = 3 * n // 8
-        left_scan = latest_scan[left_start:left_end]
+        # sector2 (20° to 60°)
+        start2 = end1
+        end2 = n // 6
+        scan2 = latest_scan[start2:end2]
         
-        # Right sector (225°-315°)
-        right_start = 5 * n // 8
-        right_end = 7 * n // 8
-        right_scan = latest_scan[right_start:right_end]
+        # sector3 (60 to 100°)
+        start3 = end2
+        end3 = end2 + n // 9
+        scan3 = latest_scan[start3:end3]
         
-        # Rear sector (135°-225°)
-        rear_start = 3 * n // 8
-        rear_end = 5 * n // 8
-        rear_scan = latest_scan[rear_start:rear_end]
+        #sector4 (100° to 140°)
+        start4 = end3
+        end4 = end3 + n // 9
+        scan4 = latest_scan[start4:end4]
+        
+        #sector5 (140° to 180°)
+        start5 = end4
+        end5 = n // 2
+        scan5 = latest_scan[start5:end5]    
+        
+        #sector6 (180 to 220°)
+        start6 = end5
+        end6 = end5 + n // 9
+        scan6 = latest_scan[start6:end6]    
+        
+        #sector7 (220° to 260°)
+        start7 = end6
+        end7 = end6 + n // 9
+        scan7 = latest_scan[start7:end7]
+        
+        #sector8 (260° to 300°)
+        start8 = end7
+        end8 = end7 + n // 9
+        scan8 = latest_scan[start8:end8]
+        
+        #sector9 (300° to 340°)
+        start9 = end8
+        end9 = end8 + n // 9
+        scan9 = latest_scan[start9:end9]
+       
         
         # 3. Calculate min distances for critical areas
-        min_front = np.min(front_scan)
-        min_left = np.min(left_scan)
-        min_right = np.min(right_scan)
-        min_rear = np.min(rear_scan)
+        min1 = np.min(scan1)
+        min2 = np.min(scan2)
+        min3 = np.min(scan3)
+        min4 = np.min(scan4)
+        min5 = np.min(scan5)
+        min6 = np.min(scan6)
+        min7 = np.min(scan7)
+        min8 = np.min(scan8)
+        min9 = np.min(scan9)
         
         # 4. Calculate maximum distances for critical areas
-        max_front = np.max(front_scan)
-        max_left = np.max(left_scan)
-        max_right = np.max(right_scan)
-        max_rear = np.max(rear_scan)    
+        max1 = np.max(scan1) 
+        max2 = np.max(scan2)
+        max3 = np.max(scan3)
+        max4 = np.max(scan4)
+        max5 = np.max(scan5)            
+        max6 = np.max(scan6)
+        max7 = np.max(scan7)
+        max8 = np.max(scan8)
+        max9 = np.max(scan9) 
         
         
         # 5. Build state vector
         state = [
-            min_front, 
-            max_front, 
-            min_left, 
-            max_left, 
-            min_right, 
-            max_right, 
-            min_rear,
-            max_rear,
+            min1, min2, min3, min4, min5, min6, min7, min8, min9,
+            max1, max2, max3, max4, max5, max6, max7, max8, max9,
             distance, 
             cos, 
             sin,

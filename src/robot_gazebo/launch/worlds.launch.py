@@ -16,12 +16,13 @@ def launch_setup(context):
     world_name = LaunchConfiguration('world_name', default='empty').perform(context)
     nav = LaunchConfiguration('nav', default='false').perform(context)
     moveit_unite = LaunchConfiguration('moveit_unite', default='false').perform(context)
-    
+    gui = LaunchConfiguration('gui', default='false').perform(context)
 
     moveit_unite_arg = DeclareLaunchArgument('moveit_unite', default_value=moveit_unite)
     nav_arg = DeclareLaunchArgument('nav',default_value=nav)
     use_sim_time_arg = DeclareLaunchArgument('use_sim_time',default_value=use_sim_time)
     world_name_arg = DeclareLaunchArgument('world_name',default_value=world_name)
+    gui_arg = DeclareLaunchArgument('gui',default_value=gui)
 
 
     # get the package directory
@@ -65,6 +66,7 @@ def launch_setup(context):
             'moveit_unite': moveit_unite,
             'world_name': world_name,
             'use_sim_time': use_sim_time,
+            'gui': gui,
         }.items(),
     )
 
@@ -74,6 +76,7 @@ def launch_setup(context):
         world_name_arg,
         nav_arg,
         moveit_unite_arg,
+        gui_arg,
         gazebo,
         # start_gazebo_cmd,
         spwan_model_launch,       
