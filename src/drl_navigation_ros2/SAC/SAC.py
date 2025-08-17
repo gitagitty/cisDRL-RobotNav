@@ -260,88 +260,23 @@ class SAC(object):
         inf_mask = np.isinf(latest_scan) | (latest_scan > 4.0)
         latest_scan[inf_mask] = 4.0
         
-        # 2. Calculate critical directions (front, sides, rear)
-        n = len(latest_scan)
-        # sector1 (0° ± 20°)
-        start1 = 0
-        end1 = n // 18
-        scan1 = np.concatenate((latest_scan[start1:end1], 
-                                    latest_scan[-end1:]))
         
-        # sector2 (20° to 60°)
-        start2 = end1
-        end2 = n // 6
-        scan2 = latest_scan[start2:end2]
+        max_bins = (self.state_dim - 5) / 2
+        bin_size = int(np.ceil(len(latest_scan) / max_bins))
+
+        # Initialize the list to store the minimum values of each bin
+        min_values = []
+        max_values = []
+
+        # Loop through the data and create bins
+        for i in range(0, len(latest_scan), bin_size):
+            # Get the current bin
+            bin = latest_scan[i : i + min(bin_size, len(latest_scan) - i)]
+            # Find the minimum value in the current bin and append it to the min_values list
+            min_values.append(min(bin))
+            max_values.append(max(bin))
+        state = min_values + max_values + [distance, cos, sin] + [action[0], action[1]]
         
-        # sector3 (60 to 100°)
-        start3 = end2
-        end3 = end2 + n // 9
-        scan3 = latest_scan[start3:end3]
-        
-        #sector4 (100° to 140°)
-        start4 = end3
-        end4 = end3 + n // 9
-        scan4 = latest_scan[start4:end4]
-        
-        #sector5 (140° to 180°)
-        start5 = end4
-        end5 = n // 2
-        scan5 = latest_scan[start5:end5]    
-        
-        #sector6 (180 to 220°)
-        start6 = end5
-        end6 = end5 + n // 9
-        scan6 = latest_scan[start6:end6]    
-        
-        #sector7 (220° to 260°)
-        start7 = end6
-        end7 = end6 + n // 9
-        scan7 = latest_scan[start7:end7]
-        
-        #sector8 (260° to 300°)
-        start8 = end7
-        end8 = end7 + n // 9
-        scan8 = latest_scan[start8:end8]
-        
-        #sector9 (300° to 340°)
-        start9 = end8
-        end9 = end8 + n // 9
-        scan9 = latest_scan[start9:end9]
-       
-        
-        # 3. Calculate min distances for critical areas
-        min1 = np.min(scan1)
-        min2 = np.min(scan2)
-        min3 = np.min(scan3)
-        min4 = np.min(scan4)
-        min5 = np.min(scan5)
-        min6 = np.min(scan6)
-        min7 = np.min(scan7)
-        min8 = np.min(scan8)
-        min9 = np.min(scan9)
-        
-        # 4. Calculate maximum distances for critical areas
-        max1 = np.max(scan1) 
-        max2 = np.max(scan2)
-        max3 = np.max(scan3)
-        max4 = np.max(scan4)
-        max5 = np.max(scan5)            
-        max6 = np.max(scan6)
-        max7 = np.max(scan7)
-        max8 = np.max(scan8)
-        max9 = np.max(scan9) 
-        
-        
-        # 5. Build state vector
-        state = [
-            min1, min2, min3, min4, min5, min6, min7, min8, min9,
-            max1, max2, max3, max4, max5, max6, max7, max8, max9,
-            distance, 
-            cos, 
-            sin,
-            action[0],  # Maintain action history for motion context
-            action[1]
-        ]
         
         # 6. Terminal conditions (goal, collisions, or crash)
         terminal = 1 if goal or (collision_count >= 10) or crash else 0

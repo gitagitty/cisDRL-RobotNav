@@ -15,6 +15,7 @@ class Pretraining:
         self.model = model
         self.replay_buffer = replay_buffer
         self.reward_function = reward_function
+        self.collision_count = 0
 
     def load_buffer(self):
         for file_name in self.file_names:
@@ -23,39 +24,44 @@ class Pretraining:
                 samples = yaml.full_load(file)
                 for i in tqdm(range(1, len(samples) - 1)):
                     sample = samples[i]
-                    latest_scan = sample["latest_scan"]
-                    distance = sample["distance"]
+                    action = sample["action"]
+                    collision = sample["collision"]
+                    if collision:
+                        self.collision_count += 1
                     cos = sample["cos"]
                     sin = sample["sin"]
-                    collision = sample["collision"]
+                    distance = sample["distance"]
                     goal = sample["goal"]
-                    action = sample["action"]
-                    crash = sample["crash"]
+                    latest_scan = sample["latest_scan"]
+                    crash = False
 
                     state, terminal = self.model.prepare_state(
-                        latest_scan, distance, cos, sin, collision, goal, action, crash, cos
+                        latest_scan, distance, cos, sin, goal, action, self.collision_count, crash  #latest_scan, distance, cos, sin, goal, a, collision_count, crash
                     )
 
                     if terminal:
+                        self.collision_count = 0
                         continue
 
                     next_sample = samples[i + 1]
-                    next_latest_scan = next_sample["latest_scan"]
-                    next_distance = next_sample["distance"]
+                    next_action = next_sample["action"]
+                    next_collision = next_sample["collision"]
+                    if next_collision:
+                        self.collision_count += 1
                     next_cos = next_sample["cos"]
                     next_sin = next_sample["sin"]
-                    next_collision = next_sample["collision"]
+                    next_distance = next_sample["distance"]
                     next_goal = next_sample["goal"]
-                    next_action = next_sample["action"]
-                    next_crash = next_sample["crash"]
+                    next_latest_scan = next_sample["latest_scan"]
+                    next_crash = False
                     next_state, next_terminal = self.model.prepare_state(
                         next_latest_scan,
                         next_distance,
                         next_cos,
                         next_sin,
-                        next_collision,
                         next_goal,
                         next_action,
+                        self.collision_count,
                         next_crash
                     )
                     reward = self.reward_function(

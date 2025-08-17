@@ -78,11 +78,11 @@ class ROS_env:
         )
         collision = self.sensor_subscriber.has_collision()
         # collision_count = self.sensor_subscriber.get_collision_count()
-        crash = self.sensor_subscriber.has_crash()
         if collision:
             print("Collision detected!")
             self.sensor_subscriber.collision_count += 1
             print(f"Collision count: {self.sensor_subscriber.collision_count}")
+        crash = self.sensor_subscriber.has_crash()
         if crash:
             print("Crash detected!")
         goal = self.check_target(distance, collision)
@@ -271,8 +271,8 @@ class ROS_env:
         if laser_scan is None or len(laser_scan) == 0:
             return 0.0  # Neutral reward when no scan data
             
-        base_reward = 10*(action[0] + action[1])
-        target_reward = action[0] * cos
+        target_reward = action[0] * cos * 30
+        base_reward = 10 * (abs(action[0])+abs(action[1]))  # Base reward for moving forward
             
         return base_reward + goal_reward + col_reward + crash_reward + target_reward
 
