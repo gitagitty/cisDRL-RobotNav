@@ -265,14 +265,14 @@ class ROS_env:
         if collision:
             col_reward = -100.0  # Penalize collisions
         if goal:
-            goal_reward = 100.0  # Large reward for reaching goal
+            goal_reward = 500.0  # Large reward for reaching goal
         
         # Handle None or empty laser scans
         if laser_scan is None or len(laser_scan) == 0:
             return 0.0  # Neutral reward when no scan data
             
-        target_reward = action[0] * cos * 30
-        base_reward = 10 * (abs(action[0])+abs(action[1]))  # Base reward for moving forward
+        target_reward = action[0] * cos
+        base_reward = abs(action[0])+abs(action[1]) # Base reward for moving forward
             
         return base_reward + goal_reward + col_reward + crash_reward + target_reward
 

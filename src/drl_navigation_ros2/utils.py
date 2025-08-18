@@ -49,7 +49,7 @@ def record_eval_positions(n_eval_scenarios=10):
     scenarios = []
     
     # Select evaluation configurations (first n or random selection)
-    eval_configs = all_configs[:n_eval_scenarios]
+    eval_configs = all_configs[::2][:n_eval_scenarios]
     
     for config in eval_configs:
         scenario = []
