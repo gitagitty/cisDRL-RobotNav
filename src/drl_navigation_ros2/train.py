@@ -37,15 +37,15 @@ def main(args=None):
     batch_size = 40  # batch size for each training iteration
     max_steps = 500  # maximum number of steps in single episode
     steps = 0  # starting step number
-    load_saved_buffer = True  # whether to load experiences from assets/data.yml
-    pretrain = True  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
+    load_saved_buffer = False  # whether to load experiences from assets/data.yml
+    pretrain = False  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
     pretraining_iterations = (
         100  # number of training iterations to run during pre-training
     )
     save_every = 100  # save the model every n training cycles
-    # episode_id = 1
-    # import yaml  
-    # yaml_data = {}
+    episode_id = 1
+    import yaml  
+    yaml_data = {}
     
 
     model = SAC(
@@ -54,7 +54,7 @@ def main(args=None):
         max_action=max_action,
         device=device,
         save_every=save_every,
-        load_model=False,
+        load_model=True,
     )  # instantiate a model
 
     ros = ROS_env()  # instantiate ROS environment
@@ -66,7 +66,7 @@ def main(args=None):
         pretraining = Pretraining(
             file_names=["src/drl_navigation_ros2/assets/set.yml"],
             model=model,
-            replay_buffer=ReplayBuffer(buffer_size=5e3, random_seed=42),
+            replay_buffer=ReplayBuffer(buffer_size=1e6, random_seed=42),
             reward_function=ros.get_reward,
         )  # instantiate pre-trainind
         replay_buffer = (
@@ -81,7 +81,7 @@ def main(args=None):
             )  # run pre-training
     else:
         replay_buffer = ReplayBuffer(
-            buffer_size=5e3, random_seed=42        
+            buffer_size=1e6, random_seed=42        
         )  # if not experiences are loaded, instantiate an empty buffer
 
     ros.reset()  # reset the ROS environment to the initial state
@@ -113,21 +113,21 @@ def main(args=None):
         )  # add experience to the replay buffer
       
  
-        # yaml_data[episode_id] = {
-        #     "action": action.tolist(),
-        #     "collision": collision,
-        #     "cos": float(cos),
-        #     "sin": float(sin),
-        #     "distance": float(distance),
-        #     "goal": goal,
-        #     "latest_scan": latest_scan.tolist(),
-        # }
-        # episode_id += 1
-        # # Optional: Save every 1000 episodes to prevent memory overload
-        # if episode_id % 1000 == 0:
-        #     with open("src/drl_navigation_ros2/assets/set.yml", "w") as f:
-        #         yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
-        #     print(f"Saved up to episode {episode_id - 1}")
+        yaml_data[episode_id] = {
+            "action": action.tolist(),
+            "collision": collision,
+            "cos": float(cos),
+            "sin": float(sin),
+            "distance": float(distance),
+            "goal": goal,
+            "latest_scan": latest_scan.tolist(),
+        }
+        episode_id += 1
+        # Optional: Save every 1000 episodes to prevent memory overload
+        if episode_id % 1000 == 0:
+            with open("src/drl_navigation_ros2/assets/data.yml", "w") as f:
+                yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
+            print(f"Saved up to episode {episode_id - 1}")
 
         if (
             terminal or steps == max_steps
