@@ -64,7 +64,7 @@ def main(args=None):
 
     if load_saved_buffer:
         pretraining = Pretraining(
-            file_names=["src/drl_navigation_ros2/assets/set.yml"],
+            file_names=["src/drl_navigation_ros2/assets/data.yml"],
             model=model,
             replay_buffer=ReplayBuffer(buffer_size=1e6, random_seed=42),
             reward_function=ros.get_reward,
@@ -112,7 +112,7 @@ def main(args=None):
             state, action, reward, terminal, next_state
         )  # add experience to the replay buffer
       
-        if savefile
+        if savefile:
             yaml_data[episode_id] = {
                 "action": action.tolist(),
                 "collision": collision,
