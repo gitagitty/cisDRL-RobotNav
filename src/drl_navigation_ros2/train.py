@@ -36,7 +36,7 @@ def main(args=None):
     batch_size = 40  # batch size for each training iteration
     max_steps = 500  # maximum number of steps in single episode
     steps = 0  # starting step number
-    load_saved_buffer = False  # whether to load experiences from assets/data.yml
+    load_saved_buffer = True  # whether to load experiences from assets/data.yml
     pretrain = False  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
     pretraining_iterations = (
         100  # number of training iterations to run during pre-training
@@ -45,6 +45,7 @@ def main(args=None):
     episode_id = 1
     import yaml  
     yaml_data = {}
+    savefile = False  # whether to save the data from the training episodes to assets/data.yml
     
 
     model = SAC(
@@ -111,24 +112,24 @@ def main(args=None):
             state, action, reward, terminal, next_state
         )  # add experience to the replay buffer
       
- 
-        yaml_data[episode_id] = {
-            "action": action.tolist(),
-            "collision": collision,
-            "cos": float(cos),
-            "sin": float(sin),
-            "distance": float(distance),
-            "goal": goal,
-            "latest_scan": latest_scan.tolist(),
-        }
-        episode_id += 1
-        # Optional: Save every 1000 episodes to prevent memory overload
-        if episode_id % 1000 == 0:
-            with open("src/drl_navigation_ros2/assets/data.yml", "w") as f:
-                yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
-            print(f"Saved up to episode {episode_id - 1}")
-        if episode_id == 10000:  
-            exit(0)
+        if savefile
+            yaml_data[episode_id] = {
+                "action": action.tolist(),
+                "collision": collision,
+                "cos": float(cos),
+                "sin": float(sin),
+                "distance": float(distance),
+                "goal": goal,
+                "latest_scan": latest_scan.tolist(),
+            }
+            episode_id += 1
+            # Optional: Save every 1000 episodes to prevent memory overload
+            if episode_id % 1000 == 0:
+                with open("src/drl_navigation_ros2/assets/data.yml", "w") as f:
+                    yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
+                print(f"Saved up to episode {episode_id - 1}")
+            if episode_id == 10000:  
+                exit(0)
 
         if (
             terminal or steps == max_steps
