@@ -2,7 +2,7 @@
 
 colcon build
 
-echo "🤖 Simple PPO Navigation Training Starter"
+echo "🤖 Simple SAC Navigation Training Starter"
 echo "=========================================="
 
 # Clean up previous processes
