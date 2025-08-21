@@ -642,7 +642,7 @@ def main():
                 sc.wall_line,
                 car_width,
                 cylinder_radius=0.05,
-                spacing=0.15  # 小于车宽 0.28
+                spacing=0.20  # 小于车宽 0.28
             ),
             start_pose=sc.start_pose,
             target_position=sc.target_pose
