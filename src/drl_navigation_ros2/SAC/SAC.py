@@ -53,6 +53,7 @@ class SAC(object):
         self.model_name = model_name
         self.save_directory = save_directory
         self.log_dist_and_hist = log_dist_and_hist
+        self.load_model = load_model
 
         self.train_metrics_dict = { "train_critic/loss_av": [],
                                     "train_actor/loss_av": [],
@@ -123,13 +124,13 @@ class SAC(object):
 
     def load(self, filename, directory):
         self.actor.load_state_dict(
-            torch.load("%s/%s_actor.pth" % (directory, filename))
+            torch.load("%s/%s_actor.pth" % (directory, filename), weights_only=self.load_model)
         )
         self.critic.load_state_dict(
-            torch.load("%s/%s_critic.pth" % (directory, filename))
+            torch.load("%s/%s_critic.pth" % (directory, filename), weights_only=self.load_model)
         )
         self.critic_target.load_state_dict(
-            torch.load("%s/%s_critic_target.pth" % (directory, filename))
+            torch.load("%s/%s_critic_target.pth" % (directory, filename), weights_only=self.load_model)
         )
         print(f"Loaded weights from: {directory}")
 
