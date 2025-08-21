@@ -112,21 +112,23 @@ def main(args=None):
         )  # add experience to the replay buffer
       
  
-        # yaml_data[episode_id] = {
-        #     "action": action.tolist(),
-        #     "collision": collision,
-        #     "cos": float(cos),
-        #     "sin": float(sin),
-        #     "distance": float(distance),
-        #     "goal": goal,
-        #     "latest_scan": latest_scan.tolist(),
-        # }
-        # episode_id += 1
-        # # Optional: Save every 1000 episodes to prevent memory overload
-        # if episode_id % 1000 == 0:
-        #     with open("src/drl_navigation_ros2/assets/data.yml", "w") as f:
-        #         yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
-        #     print(f"Saved up to episode {episode_id - 1}")
+        yaml_data[episode_id] = {
+            "action": action.tolist(),
+            "collision": collision,
+            "cos": float(cos),
+            "sin": float(sin),
+            "distance": float(distance),
+            "goal": goal,
+            "latest_scan": latest_scan.tolist(),
+        }
+        episode_id += 1
+        # Optional: Save every 1000 episodes to prevent memory overload
+        if episode_id % 1000 == 0:
+            with open("src/drl_navigation_ros2/assets/data.yml", "w") as f:
+                yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
+            print(f"Saved up to episode {episode_id - 1}")
+        if episode_id == 10000:  
+            exit(0)
 
         if (
             terminal or steps == max_steps
