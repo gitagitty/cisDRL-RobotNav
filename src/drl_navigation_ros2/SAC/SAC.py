@@ -54,6 +54,7 @@ class SAC(object):
         self.save_directory = save_directory
         self.log_dist_and_hist = log_dist_and_hist
         self.load_model = load_model
+        self.best_goal_rate = 0.0
 
         self.train_metrics_dict = { "train_critic/loss_av": [],
                                     "train_actor/loss_av": [],
@@ -120,6 +121,14 @@ class SAC(object):
         torch.save(
             self.critic_target.state_dict(),
             "%s/%s_critic_target.pth" % (directory, filename),
+        )
+        
+    def savebest(self, filename, directory):
+        torch.save(self.actor.state_dict(), "%s/%s_actor_best.pth" % (directory, filename))
+        torch.save(self.critic.state_dict(), "%s/%s_critic_best.pth" % (directory, filename))
+        torch.save(
+            self.critic_target.state_dict(),
+            "%s/%s_critic_target_best.pth" % (directory, filename),
         )
 
     def load(self, filename, directory):

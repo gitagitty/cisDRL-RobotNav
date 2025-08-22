@@ -37,7 +37,7 @@ def main(args=None):
     max_steps = 500  # maximum number of steps in single episode
     steps = 0  # starting step number
     load_saved_buffer = True  # whether to load experiences from assets/data.yml
-    pretrain = False  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
+    pretrain = True  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
     pretraining_iterations = (
         100  # number of training iterations to run during pre-training
     )
@@ -45,7 +45,7 @@ def main(args=None):
     episode_id = 1
     import yaml  
     yaml_data = {}
-    savefile = False  # whether to save the data from the training episodes to assets/data.yml
+    savefile = True  # whether to save the data from the training episodes to assets/data.yml
     
 
     model = SAC(
@@ -112,7 +112,7 @@ def main(args=None):
             state, action, reward, terminal, next_state
         )  # add experience to the replay buffer
       
-        if savefile:
+        if savefile and episode_id < 100000:  # save the data from the training episodes to assets/data.yml
             yaml_data[episode_id] = {
                 "action": action.tolist(),
                 "collision": collision,
@@ -128,8 +128,6 @@ def main(args=None):
                 with open("src/drl_navigation_ros2/assets/data.yml", "w") as f:
                     yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
                 print(f"Saved up to episode {episode_id - 1}")
-            if episode_id == 10000:  
-                exit(0)
 
         if (
             terminal or steps == max_steps
@@ -200,6 +198,10 @@ def eval(model, env, scenarios, epoch, max_steps):
     avg_reward /= len(scenarios)
     avg_col = col / len(scenarios)
     avg_goal = gl / len(scenarios)
+    if avg_goal > model.best_goal_rate:
+        model.best_goal_rate = avg_goal
+        model.savebest(filename=model.model_name, directory=model.save_directory)
+        print("New best goal rate achieved, saving the model")
     print(f"Average Reward: {avg_reward}")
     print(f"Average Collision rate: {avg_col}")
     print(f"Average Goal rate: {avg_goal}")
