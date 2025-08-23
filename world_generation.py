@@ -508,9 +508,9 @@ def amend_sdf(sdf_root):
 
 
 def main():
-    car_length = 0.42 #0.32for real
-    car_width  = 0.38 #0.28 for real
-    wheel_base = 0.313 # 0.213 for real
+    car_length = 0.32 #0.32for real
+    car_width  = 0.28 #0.28 for real
+    wheel_base = 0.213 # 0.213 for real
     total_maps = 30
 
     # 1. 生成子区域
