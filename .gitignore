@@ -2,5 +2,7 @@
 /install
 /build
 __pycache__/
+src/drl_navigation_ros2/SAC/__pycache__/
 *.py[cod]
 *$py.class
+*.zip

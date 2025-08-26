@@ -26,11 +26,11 @@ def main(args=None):
         print("Using GPU for training")
     else:
         print("Using CPU for training")
-    nr_eval_episodes = 30  # how many episodes to use to run evaluation
+    nr_eval_episodes = 25  # how many episodes to use to run evaluation
     max_epochs = 100  # max number of epochs
     epoch = 0  # starting epoch number
     episodes_per_epoch = 70  # how many episodes to run in single epoch
-    episode = 0  # starting episode number
+    episode = 1  # starting episode number
     train_every_n = 2  # train and update network parameters every n episodes
     training_iterations = 500  # how many batches to use for single training cycle
     batch_size = 40  # batch size for each training iteration
@@ -45,6 +45,7 @@ def main(args=None):
     episode_id = 1
     import yaml  
     yaml_data = {}
+    data_length = 15000 # Number of episodes to save
     savefile = True  # whether to save the data from the training episodes to assets/data.yml
     
 
@@ -112,7 +113,7 @@ def main(args=None):
             state, action, reward, terminal, next_state
         )  # add experience to the replay buffer
       
-        if savefile and episode_id < 100000:  # save the data from the training episodes to assets/data.yml
+        if savefile and episode_id < data_length:  # save the data from the training episodes to assets/data.yml
             yaml_data[episode_id] = {
                 "action": action.tolist(),
                 "collision": collision,
@@ -150,7 +151,7 @@ def main(args=None):
         if (
             episode
         ) % episodes_per_epoch == 0:  # if epoch is concluded, run evaluation
-            episode = 0
+            episode = 1
             epoch += 1
             eval(
                 model=model,

@@ -27,107 +27,106 @@ def build_full_world_sdf(configs):
     sdf   = ET.Element('sdf',   {'version':'1.6'})
     world = ET.SubElement(sdf, 'world', {'name':'all_training'})
     # … ground_plane include, plugin 加载等 …    
-    
-    # Add touch plugin at the world level
-    # touch_plugin = ET.SubElement(world, 'plugin', {
-    #     'name': 'touch_plugin',
-    #     'filename': 'libtouch_plugin.so'
-    # })
+    model = ET.SubElement(world,'model',{'name':'all_walls_and_cylinders'})
+    ET.SubElement(model, 'static').text = 'true'
+    link = ET.SubElement(model,'link',{'name':'single_link'})
 
+    sensor = ET.SubElement(link,'sensor',{'name':'sensor_contact','type':'contact'})
+    contact = ET.SubElement(sensor,'contact')
+    ET.SubElement(contact,'always_on').text = '1'
+    ET.SubElement(contact,'update_rate').text = '50'
     for idx, cfg in enumerate(configs, start=1):
         prefix = f'cfg{idx}'
 
         # —— 持续墙体 —— 
         for j, w in enumerate(cfg.walls, start=1):
-            model = ET.SubElement(world, 'model', {'name':f'{prefix}_wall{j}'})
-            ET.SubElement(model, 'static').text = 'true'
+
+
             x,y,yaw = w.pose
-            ET.SubElement(model, 'pose').text = f'{x:.3f} {y:.3f} {w.height/2:.3f} 0 0 {yaw:.6f}'
-            link = ET.SubElement(model, 'link', {'name':'link'})
+
             # collision
-            col = ET.SubElement(link, 'collision', {'name':'col'})
+            col = ET.SubElement(link, 'collision', {'name':f'{prefix}_wall{j}_col'})
+            ET.SubElement(col, 'pose').text = f'{x:.3f} {y:.3f} {w.height/2:.3f} 0 0 {yaw:.6f}'
             geom = ET.SubElement(col, 'geometry')
             box  = ET.SubElement(geom, 'box')
+            assert w.length > 0 and w.thickness > 0 and w.height > 0, f"Illegal {prefix}_wall{j}_col box size: {w.length, w.thickness, w.height}"
+
             ET.SubElement(box,'size').text = f'{w.length:.3f} {w.thickness:.3f} {w.height:.3f}'
+            sur = ET.SubElement(col, 'surface')
+            bou = ET.SubElement(sur, 'bounce')
+            ET.SubElement(bou, 'restitution_coefficient').text = '0.0'
+            ET.SubElement(bou, 'threshold').text = '1.0'
             # visual
-            vis = ET.SubElement(link, 'visual', {'name':'vis'})
+            vis = ET.SubElement(link, 'visual', {'name':f'{prefix}_wall{j}_vis'})
+            ET.SubElement(vis, 'pose').text = f'{x:.3f} {y:.3f} {w.height/2:.3f} 0 0 {yaw:.6f}'
             geom = ET.SubElement(vis, 'geometry')
             box  = ET.SubElement(geom, 'box')
+            assert w.length > 0 and w.thickness > 0 and w.height > 0, f"Illegal {prefix}_wall{j}_vis box size: {w.length, w.thickness, w.height}"
             ET.SubElement(box,'size').text = f'{w.length:.3f} {w.thickness:.3f} {w.height:.3f}'
             # **加一个 contact sensor**
-            add_contact_sensor(link, collision_name='col',
-                               sensor_name='sensor_contact',
-                               update_rate=1000)
-            # plugin = ET.SubElement(model, 'plugin', {
-            #     'filename':'libignition-gazebo-touchplugin-system.so',
-            #     'name':'ignition::gazebo::systems::TouchPlugin'
-            # })
-            # ET.SubElement(plugin,'target').text = 'jetauto'
-            # ET.SubElement(plugin,'namespace').text = 'cfg'
-            # ET.SubElement(plugin,'time').text      = '0.001'
-            # ET.SubElement(plugin,'enabled').text   = 'true'
+            ET.SubElement(contact,'collision').text = f'{prefix}_wall{j}_col'
+
 
         # —— 离散圆柱 —— 
         for j, c in enumerate(cfg.cylinders, start=1):
-            model = ET.SubElement(world, 'model', {'name':f'{prefix}_cyl{j}'})
-            ET.SubElement(model, 'static').text = 'true'
+            col = ET.SubElement(link, 'collision', {'name':f'{prefix}_cyl{j}_col'})
             # 圆柱底面放在地面上：z = radius
-            ET.SubElement(model, 'pose').text = f'{c.x:.3f} {c.y:.3f} 0.3 0 0 0'
-            link = ET.SubElement(model, 'link', {'name':'link'})
-            # collision
-            col = ET.SubElement(link, 'collision', {'name':'col'})
+            ET.SubElement(col, 'pose').text = f'{c.x:.3f} {c.y:.3f} 0.3 0 0 0'
+
+
             geom = ET.SubElement(col, 'geometry')
             cyl  = ET.SubElement(geom, 'cylinder')
             ET.SubElement(cyl,'radius').text = f'{c.radius:.3f}'
-            ET.SubElement(cyl,'length').text = f'0.6'
+            ET.SubElement(cyl,'length').text = '0.6'
+            sur = ET.SubElement(col, 'surface')
+            bou = ET.SubElement(sur, 'bounce')
+            ET.SubElement(bou, 'restitution_coefficient').text = '0.0'
+            ET.SubElement(bou, 'threshold').text = '1.0'
             # visual
-            vis = ET.SubElement(link, 'visual', {'name':'vis'})
+            vis = ET.SubElement(link, 'visual', {'name':f'{prefix}_cyl{j}_col'})
+            ET.SubElement(vis, 'pose').text = f'{c.x:.3f} {c.y:.3f} 0.3 0 0 0'
             geom = ET.SubElement(vis, 'geometry')
             cyl  = ET.SubElement(geom, 'cylinder')
             ET.SubElement(cyl,'radius').text = f'{c.radius:.3f}'
             ET.SubElement(cyl,'length').text = '0.6'
             # **同样加一个 contact sensor**
-            add_contact_sensor(link, collision_name='col',
-                               sensor_name='sensor_contact',
-                               update_rate=1000)
+            ET.SubElement(contact,'collision').text = f'{prefix}_cyl{j}_col'
 
             #（可选）在 world 里添加一个全局的 TouchPlugin，自动汇总所有 contact
-            # plugin = ET.SubElement(model, 'plugin', {
-            #     'filename':'libignition-gazebo-touchplugin-system.so',
-            #     'name':'ignition::gazebo::systems::TouchPlugin'
-            # })
-            # ET.SubElement(plugin,'target').text = 'jetauto'
-            # ET.SubElement(plugin,'namespace').text = 'cfg'
-            # ET.SubElement(plugin,'time').text      = '0.001'
-            # ET.SubElement(plugin,'enabled').text   = 'true'
+            
 
-        """     # 2c) 起点标记（绿色球）
-        sx, sy, syaw = cfg.start_pose
-        m = ET.SubElement(world, 'model', {'name':f'{prefix}_start'})
-        ET.SubElement(m,'static').text = 'true'
-        ET.SubElement(m,'pose').text = f'{sx:.3f} {sy:.3f} 0.1 0 0 {syaw:.6f}'
-        link = ET.SubElement(m,'link',{'name':'link'})
-        vis  = ET.SubElement(link,'visual',{'name':'vis'})
-        geom = ET.SubElement(vis,'geometry')
-        sph  = ET.SubElement(geom,'sphere')
-        ET.SubElement(sph,'radius').text = '0.1'
-        mat  = ET.SubElement(vis,'material')
-        diff = ET.SubElement(mat,'diffuse')
-        diff.text = '0 1 0 1'  # 绿
+        #     # 2c) 起点标记（绿色球）
+        # sx, sy, syaw = cfg.start_pose
+        # m = ET.SubElement(world, 'model', {'name':f'{prefix}_start'})
+        # ET.SubElement(m,'static').text = 'true'
+        # ET.SubElement(m,'pose').text = f'{sx:.3f} {sy:.3f} 0.1 0 0 {syaw:.6f}'
+        # link = ET.SubElement(m,'link',{'name':'link'})
+        # vis  = ET.SubElement(link,'visual',{'name':'vis'})
+        # geom = ET.SubElement(vis,'geometry')
+        # sph  = ET.SubElement(geom,'sphere')
+        # ET.SubElement(sph,'radius').text = '0.1'
+        # mat  = ET.SubElement(vis,'material')
+        # diff = ET.SubElement(mat,'diffuse')
+        # diff.text = '0 1 0 1'  # 绿
 
-        # 2d) 目标标记（红色球），无朝向
-        tx, ty = cfg.target_position
-        m = ET.SubElement(world,'model',{'name':f'{prefix}_goal'})
-        ET.SubElement(m,'static').text = 'true'
-        ET.SubElement(m,'pose').text = f'{tx:.3f} {ty:.3f} 0.1 0 0 0'
-        link = ET.SubElement(m,'link',{'name':'link'})
-        vis  = ET.SubElement(link,'visual',{'name':'vis'})
-        geom = ET.SubElement(vis,'geometry')
-        sph  = ET.SubElement(geom,'sphere')
-        ET.SubElement(sph,'radius').text = '0.1'
-        mat  = ET.SubElement(vis,'material')
-        diff = ET.SubElement(mat,'diffuse')
-        diff.text = '1 0 0 1'  # 红 """
+        # # 2d) 目标标记（红色球），无朝向
+        # tx, ty = cfg.target_position
+        # m = ET.SubElement(world,'model',{'name':f'{prefix}_goal'})
+        # ET.SubElement(m,'static').text = 'true'
+        # ET.SubElement(m,'pose').text = f'{tx:.3f} {ty:.3f} 0.1 0 0 0'
+        # link = ET.SubElement(m,'link',{'name':'link'})
+        # vis  = ET.SubElement(link,'visual',{'name':'vis'})
+        # geom = ET.SubElement(vis,'geometry')
+        # sph  = ET.SubElement(geom,'sphere')
+        # ET.SubElement(sph,'radius').text = '0.1'
+        # mat  = ET.SubElement(vis,'material')
+        # diff = ET.SubElement(mat,'diffuse')
+        # diff.text = '1 0 0 1'  # 红
+
+    
+
+
+
 
 
     return sdf

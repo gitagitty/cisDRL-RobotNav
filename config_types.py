@@ -13,6 +13,20 @@ Pose = Tuple[float, float, float]  # (x, y, yaw)
 
 XY = Tuple[float, float]  # (x, y)
 
+
+def _robot_corners(x: float, y: float, yaw: float, L: float, W: float) -> List[Tuple[float, float]]:
+    hl, hw = L/2.0, W/2.0
+    corners_local = [( hl,  hw), ( hl, -hw), (-hl, -hw), (-hl,  hw)]
+    corners = []
+    c = math.cos(yaw)
+    s = math.sin(yaw)
+    for lx, ly in corners_local:
+        gx = x + lx * c - ly * s
+        gy = y + lx * s + ly * c
+        corners.append((gx, gy))
+    return corners
+
+
 @dataclass
 class Region:
     x_min: float
@@ -142,6 +156,59 @@ class Wall:
 
     
 
+@dataclass
+class TargetPoly:
+    """
+    目标处出口区域的多边形（机器人足迹的外环）。
+    构造时根据 exit_pose + 车辆尺寸 + 缓冲生成一个多边形，
+    并提供序列化接口用于存入 JSON。
+    """
+    x: float
+    y: float
+    yaw: float
+    car_length: float
+    car_width: float
+    gap_buffer: float
+
+    def __post_init__(self):
+        coords = _robot_corners(
+            self.x, self.y, self.yaw,
+            12 * self.car_length,
+            # self.car_length + 22 * self.gap_buffer,
+            self.car_width  +  2 * self.gap_buffer
+        )
+        self.polygon: Polygon = Polygon(coords)
+
+    def draw(self, ax: plt.Axes = None, **kwargs) -> plt.Axes:
+        if ax is None:
+            fig, ax = plt.subplots()
+        xs, ys = self.polygon.exterior.xy
+        ax.plot(xs, ys, **kwargs)
+        ax.set_aspect('equal', 'box')
+        return ax
+
+    def to_list(self) -> List[Tuple[float, float]]:
+        """
+        返回多边形外环的坐标列表 [(x1,y1), (x2,y2), ...]，
+        方便直接存到 JSON 里。
+        """
+        return list(self.polygon.exterior.coords)
+
+    def to_dict(self) -> dict:
+        """
+        返回一个可序列化的字典，包括构造参数和坐标列表：
+        {
+          "origin": [x, y, yaw],
+          "size":   [car_length, car_width, gap_buffer],
+          "coords": [[x1,y1], [x2,y2], ...]
+        }
+        """
+        return {
+            "origin": [self.x, self.y, self.yaw],
+            "size":   [self.car_length, self.car_width, self.gap_buffer],
+            "coords": self.to_list()
+        }
+
 
 
 
@@ -154,13 +221,30 @@ class Configuration:
     cylinders: List[Cylinder]     # 如果 density=='sparse'     时，这里存 Cylinder 列表
     start_pose: Pose
     target_position:   XY
+    target_poly: TargetPoly
+
+    # === 新增：可选的专家示范 ===
+    demo_poses: Optional[List[Pose]] = None                  # [(x,y,yaw), ...]
+    demo_actions: Optional[List[Tuple[float, float]]] = None # [(v, delta), ...]
+    demo_dt: Optional[List[float]] = None
+
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             'density':    self.density,
             'region':     self.region.to_list(),
-            'walls':      [ [w.length, w.thickness, w.height] for w in self.walls ],
+            'walls':      [[w.length, w.thickness, w.height] for w in self.walls],
             'cylinders':  [c.to_list() for c in self.cylinders],
             'start_pose': list(self.start_pose),
-            'target_position':   list(self.target_position),
+            'target_position': list(self.target_position),
+            'target_poly': self.target_poly.to_list(),
+            'target_yaw': self.target_poly.yaw
         }
+        # === 新增：有就写入 JSON ===
+        if self.demo_poses is not None:
+            d['demo_poses'] = [list(p) for p in self.demo_poses]
+        if self.demo_actions is not None:
+            d['demo_actions'] = [list(a) for a in self.demo_actions]
+        if self.demo_dt is not None:
+            d['demo_dt'] = list(self.demo_dt)
+        return d
