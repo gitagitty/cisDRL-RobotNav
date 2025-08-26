@@ -60,7 +60,7 @@ class DEP_env:
         self.action_dim = action_dim
         self.action_range = (-max_action, max_action)
         self.device = torch.device(device)
-        self.writer = SummaryWriter('deploy')
+        self.writer = SummaryWriter('deploy/{}'.format(time.strftime("%m%d-%H%M")))
         self.actor = actor_model(
             obs_dim=self.state_dim,
             action_dim=action_dim,
