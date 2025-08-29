@@ -37,9 +37,9 @@ def main(args=None):
     max_steps = 500  # maximum number of steps in single episode
     steps = 0  # starting step number
     load_saved_buffer = True  # whether to load experiences from assets/data.yml
-    pretrain = True  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
+    pretrain = False  # whether to use the loaded experiences to pre-train the model (load_saved_buffer must be True)
     pretraining_iterations = (
-        100  # number of training iterations to run during pre-training
+        50  # number of training iterations to run during pre-training
     )
     save_every = 100  # save the model every n training cycles
     episode_id = 1
@@ -129,6 +129,8 @@ def main(args=None):
                 with open("src/drl_navigation_ros2/assets/data.yml", "w") as f:
                     yaml.dump(yaml_data, f, default_flow_style=False, sort_keys=False)  
                 print(f"Saved up to episode {episode_id - 1}")
+        else:
+            episode_id = 1
 
         if (
             terminal or steps == max_steps
