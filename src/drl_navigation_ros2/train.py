@@ -201,7 +201,7 @@ def eval(model, env, scenarios, epoch, max_steps):
     avg_reward /= len(scenarios)
     avg_col = col / len(scenarios)
     avg_goal = gl / len(scenarios)
-    if avg_goal > model.best_goal_rate:
+    if avg_goal >= model.best_goal_rate:
         model.best_goal_rate = avg_goal
         model.savebest(filename=model.model_name, directory=model.save_directory)
         print("New best goal rate achieved, saving the model")
