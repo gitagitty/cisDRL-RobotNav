@@ -55,10 +55,10 @@ class SensorSubscriber(Node):
             if hasattr(contact, 'collision1_name') and hasattr(contact, 'collision2_name'):
                 self.crash = False
                 current_state = True
-                # collision1 = contact.collision1_name.lower()
+                collision1 = contact.collision1_name.lower()
                 collision2 = contact.collision2_name.lower()
                 # 过滤掉地面平面碰撞
-                if 'ground' in collision2 :
+                if 'wheel' in collision1 and 'ground' in collision2 :
                     is_ground_collision = True
             else:
                 self.crash = True

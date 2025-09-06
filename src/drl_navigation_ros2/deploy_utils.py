@@ -324,7 +324,7 @@ class DEP_env:
         
         
         # 6. Terminal conditions (goal, collisions, or crash)
-        terminal = 1 if goal or (collision_count >= 10) or crash else 0
+        terminal = 1 if goal or (collision_count >= 15) or crash else 0
         
         # 7. Verify state dimension matches expected size
         assert len(state) == self.state_dim

@@ -30,7 +30,7 @@ export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:touch_plugin/build
 
 echo "🌍 Starting Gazebo..."
 # Start Gazebo in background
-ros2 launch robot_gazebo worlds.launch.py world_name:=all_training gui:=True &
+ros2 launch robot_gazebo worlds.launch.py world_name:=all_training gui:=False &
 GAZEBO_PID=$!
 
 echo "⏳ Waiting 20 seconds for Gazebo to fully start..."

@@ -113,6 +113,24 @@
         </sensor>
     </gazebo>
 
+    <!-- Contact sensor for the robot body -->
+    <gazebo reference="base_link">
+        <sensor name="contact_sensor_body" type="contact">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <contact>
+                <collision>base_link_collision</collision>
+            </contact>
+            <plugin name="gazebo_ros_bumper_body" filename="libgazebo_ros_bumper.so">
+                <ros>
+                    <namespace>/robot</namespace>
+                    <remapping>bumper_states:=cfg/touched</remapping>
+                </ros>
+                <frame_name>base_link</frame_name>
+            </plugin>
+        </sensor>
+    </gazebo>
+
     <!-- Note: Wheel-ground collisions will be filtered in software by checking collision names -->
 
     <!-- WHEEL FRICTION SETTINGS FOR 4WD SYSTEM -->

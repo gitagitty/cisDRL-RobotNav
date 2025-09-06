@@ -755,7 +755,7 @@ def main():
     car_length = 0.37
     car_width  = 0.36
     wheel_base = 0.263
-    total_maps = 100
+    total_maps = 180
 
     # 1. 生成子区域
     regions = generate_subregions(car_length, car_width, total_maps=total_maps)

@@ -24,7 +24,7 @@ def main(args=None):
     action_dim = 2  # number of actions produced by the model
     max_action = 1  # maximum absolute value of output actions
     state_dim = 40+5  # number of input values in the neural network (vector length of state input)
-    model_path = "src/drl_navigation_ros2/models/SAC/SAC_actor.pth"  # path to the trained model
+    model_path = "src/drl_navigation_ros2/models/SAC/SAC_actor_best.pth"  # path to the trained model
     device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )  # using cuda if it is available, cpu otherwise
@@ -32,7 +32,7 @@ def main(args=None):
         print("Using GPU for deployment")
     else:
         print("Using CPU for deployment")
-    episodes_per_epoch = 70  # how many episodes to run in single epoch
+    max_episode = 360  # how many episodes to run in single epoch
     episode = 0  # starting episode number
     train_every_n = 2  # train and update network parameters every n episodes
     training_iterations = 500  # how many batches to use for single training cycle
@@ -42,6 +42,7 @@ def main(args=None):
     totalreward = 0.0
     totalcol = 0.0
     totalgoal = 0.0
+
 
     print("Loading model...")
 
@@ -60,7 +61,7 @@ def main(args=None):
     )  # get the initial step state
     print("Initial step done.")
 
-    while True:
+    while episode < max_episode:
         state, terminal = ros.prepare_state(
             latest_scan, distance, cos, sin, goal, a, collision_count, crash
         )  # get state a state representation from returned data from the environment
