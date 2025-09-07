@@ -6,3 +6,6 @@ src/drl_navigation_ros2/SAC/__pycache__/
 *.py[cod]
 *$py.class
 *.zip
+config.md
+config.pdf
+/deploy

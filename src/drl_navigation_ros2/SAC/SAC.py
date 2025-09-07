@@ -194,7 +194,7 @@ class SAC(object):
             current_Q2, target_Q
         )
         self.train_metrics_dict["train_critic/loss_av"].append(critic_loss.item())
-        self.writer.add_scalar("train_critic/loss", critic_loss, step)
+        # self.writer.add_scalar("train_critic/loss", critic_loss, step)
 
         # Optimize the critic
         self.critic_optimizer.zero_grad()
@@ -214,9 +214,9 @@ class SAC(object):
         self.train_metrics_dict["train_actor/loss_av"].append(actor_loss.item())
         self.train_metrics_dict["train_actor/target_entropy_av"].append(self.target_entropy)
         self.train_metrics_dict["train_actor/entropy_av"].append(-log_prob.mean().item())
-        self.writer.add_scalar("train_actor/loss", actor_loss, step)
-        self.writer.add_scalar("train_actor/target_entropy", self.target_entropy, step)
-        self.writer.add_scalar("train_actor/entropy", -log_prob.mean(), step)
+        # self.writer.add_scalar("train_actor/loss", actor_loss, step)
+        # self.writer.add_scalar("train_actor/target_entropy", self.target_entropy, step)
+        # self.writer.add_scalar("train_actor/entropy", -log_prob.mean(), step)
 
         # optimize the actor
         self.actor_optimizer.zero_grad()
@@ -232,8 +232,8 @@ class SAC(object):
             ).mean()
             self.train_metrics_dict["train_alpha/loss_av"].append(alpha_loss.item())
             self.train_metrics_dict["train_alpha/value_av"].append(self.alpha.item())
-            self.writer.add_scalar("train_alpha/loss", alpha_loss, step)
-            self.writer.add_scalar("train_alpha/value", self.alpha, step)
+            # self.writer.add_scalar("train_alpha/loss", alpha_loss, step)
+            # self.writer.add_scalar("train_alpha/value", self.alpha, step)
             alpha_loss.backward()
             self.log_alpha_optimizer.step()
 
@@ -252,7 +252,7 @@ class SAC(object):
         reward = torch.Tensor(batch_rewards).to(self.device)
         done = torch.Tensor(batch_dones).to(self.device)
         self.train_metrics_dict["train/batch_reward_av"].append(batch_rewards.mean().item())
-        self.writer.add_scalar("train/batch_reward", batch_rewards.mean(), step)
+        # self.writer.add_scalar("train/batch_reward", batch_rewards.mean(), step)
 
         self.update_critic(state, action, reward, next_state, done, step)
 
