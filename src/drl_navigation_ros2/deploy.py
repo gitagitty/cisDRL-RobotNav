@@ -24,7 +24,7 @@ def main(args=None):
     action_dim = 2  # number of actions produced by the model
     max_action = 1  # maximum absolute value of output actions
     state_dim = 40+5  # number of input values in the neural network (vector length of state input)
-    model_path = "src/drl_navigation_ros2/models/SAC/SAC_actor_best.pth"  # path to the trained model
+    model_path = "src/drl_navigation_ros2/models/SAC/SAC_actor.pth"  # path to the trained model
     device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )  # using cuda if it is available, cpu otherwise
@@ -32,7 +32,7 @@ def main(args=None):
         print("Using GPU for deployment")
     else:
         print("Using CPU for deployment")
-    max_episode = 360  # how many episodes to run in single epoch
+    max_episode = 60  # how many episodes to run in single epoch
     episode = 0  # starting episode number
     train_every_n = 2  # train and update network parameters every n episodes
     training_iterations = 500  # how many batches to use for single training cycle
@@ -42,6 +42,7 @@ def main(args=None):
     totalreward = 0.0
     totalcol = 0.0
     totalgoal = 0.0
+    totalsteps = 0
 
 
     print("Loading model...")
@@ -86,6 +87,7 @@ def main(args=None):
         if (
             terminal or steps == max_steps
         ):
+            totalsteps += steps
                           
             latest_scan, distance, cos, sin, collision, goal, a, reward = ros.reset()
             steps = 0
@@ -94,13 +96,15 @@ def main(args=None):
             avg_reward = totalreward / episode
             avg_col = totalcol / episode
             avg_goal = totalgoal / episode
+            avg_steps = totalsteps / episode
             print(f"Average Reward: {avg_reward}")
             print(f"Average Collision rate: {avg_col}")
             print(f"Average Goal rate: {avg_goal}")
             print("..............................................")
-            ros.writer.add_scalar("deploy/avg_reward", avg_reward, episode)
-            ros.writer.add_scalar("deploy/avg_col", avg_col, episode)
-            ros.writer.add_scalar("deploy/avg_goal", avg_goal, episode)
+            ros.writer.add_scalar("avg_reward", avg_reward, episode)
+            ros.writer.add_scalar("avg_col", avg_col, episode)
+            ros.writer.add_scalar("avg_goal", avg_goal, episode)
+            ros.writer.add_scalar("avg_steps", avg_steps, episode)
         else:
             steps += 1
 

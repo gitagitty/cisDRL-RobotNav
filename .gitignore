@@ -8,5 +8,4 @@ src/drl_navigation_ros2/SAC/__pycache__/
 *.zip
 config.md
 config.pdf
-/deploy
 /runs

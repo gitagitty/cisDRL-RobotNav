@@ -26,10 +26,10 @@ def main(args=None):
         print("Using GPU for training")
     else:
         print("Using CPU for training")
-    nr_eval_episodes = 25  # how many episodes to use to run evaluation
+    nr_eval_episodes = 10  # how many episodes to use to run evaluation
     max_epochs = 100  # max number of epochs
     epoch = 0  # starting epoch number
-    episodes_per_epoch = 70  # how many episodes to run in single epoch
+    episodes_per_epoch = 60  # how many episodes to run in single epoch
     episode = 1  # starting episode number
     train_every_n = 2  # train and update network parameters every n episodes
     training_iterations = 500  # how many batches to use for single training cycle
@@ -135,7 +135,7 @@ def main(args=None):
         if (
             terminal or steps == max_steps
         ):  # reset environment of terminal stat ereached, or max_steps were taken
-            print(f"Episode {episode+1} finished with reward {reward} and collision {collision_count}")
+            print(f"Episode {episode} finished with reward {reward} and collision {collision_count}")
             latest_scan, distance, cos, sin, collision, goal, a, reward = ros.reset()
             episode += 1
             if episode % train_every_n == 0:
